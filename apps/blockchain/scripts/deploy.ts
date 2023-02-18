@@ -1,4 +1,5 @@
-import { ethers } from "hardhat";
+import { ethers } from 'hardhat';
+import { deploymentAddressesBuilder } from './util';
 
 async function main() {
   const currentTimestampInSeconds = Math.round(Date.now() / 1000);
@@ -12,7 +13,17 @@ async function main() {
 
   await lock.deployed();
 
+  const MapClaim = await ethers.getContractFactory("MapClaim");
+  const mapClaim = await MapClaim.deploy();
+
+  await mapClaim.deployed();
+
+  deploymentAddressesBuilder.addDeployment('Lock', lock.address);
+  deploymentAddressesBuilder.addDeployment('MapClaim', mapClaim.address);
+  deploymentAddressesBuilder.generateDeploymentAddressesFile();
+
   console.log(`Lock with 1 ETH and unlock timestamp ${unlockTime} deployed to ${lock.address}`);
+  console.log(`MapClaim deployed to ${mapClaim.address}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
