@@ -19,7 +19,7 @@
   }
 
   async function rejectClaim(mapClaimId: number) {
-    await mapClaimContract.rewardClaim(mapClaimId).catch(err => console.log(err));
+    await mapClaimContract.rejectClaim(mapClaimId).catch(err => console.log(err));
   }
 </script>
 
