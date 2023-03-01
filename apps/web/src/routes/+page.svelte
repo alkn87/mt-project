@@ -18,28 +18,28 @@
     CORRECT_CHAIN: 2
   } as const
 
-  type MMValues = typeof MM_STATE[keyof typeof MM_STATE]
+  type MMValues = typeof MM_STATE[keyof typeof MM_STATE];
 
-  let state: MMValues
+  let state: MMValues;
 
   onMount(async () => {
     await updateState()
     if (state === MM_STATE.CORRECT_CHAIN) {
-      goto('/claims')
+      goto('/claims');
     }
   })
 
 
   async function updateState() {
     if (!(await isMetamaskConnected())) {
-      state = MM_STATE.NOT_CONNECTED
+      state = MM_STATE.NOT_CONNECTED;
       return;
     }
     if (!(await (isConnectedToCorrectChain(chain.chainId)))) {
-      state = MM_STATE.CONNECTED
+      state = MM_STATE.CONNECTED;
       return;
     }
-    state = MM_STATE.CORRECT_CHAIN
+    state = MM_STATE.CORRECT_CHAIN;
   }
 
   async function onclick() {

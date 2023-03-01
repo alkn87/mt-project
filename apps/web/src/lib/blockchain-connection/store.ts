@@ -13,3 +13,8 @@ export async function getWriteVerificationOracleContract() {
   const contract = await getVerificationOracleContract();
   return contract.connect(signer);
 }
+
+export function getCurrentSigner() {
+  const provider = new ethers.providers.Web3Provider(window.ethereum);
+  return provider.getSigner();
+}

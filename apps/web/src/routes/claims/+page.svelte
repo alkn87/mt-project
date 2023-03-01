@@ -14,6 +14,7 @@
   const verificationOracleContract = getWriteVerificationOracleContract()
 
   let accountAddress: string;
+  let userName: string;
 
   onMount(async () => {
     accountAddress = await mapClaimContract.signer.getAddress();
@@ -48,17 +49,11 @@
     listener.off('block');
   })
 
-  async function createClaim() {
-    (await mapClaimContract.createMapClaim('max', {
+  async function createClaim(userName: string) {
+    (await mapClaimContract.createMapClaim(userName, {
       gasLimit: 1_000_000
     })).wait();
   }
-
-  // async function activateClaim(tokenId: Number, changeSetId: number) {
-  //   (await mapClaimContract.activateClaim(BigNumber.from(tokenId), BigNumber.from(changeSetId), {
-  //     gasLimit: 1_000_000
-  //   })).wait();
-  // }
 
   async function activateClaim(tokenId: Number) {
     openModal(ClaimSelection, {tokenId, action: async (selectedChangeSetId) => {
@@ -70,7 +65,7 @@
 
   async function verifyClaim(mapClaimId) {
     const provider = getProvider();
-    const signer = provider.getSigner();
+    const signer = provider.getSigner('0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266');
     mapClaimContract.connect(signer);
     const signerWallet = new Wallet('0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80', provider);
 
@@ -84,9 +79,7 @@
       nonce: accountNonce
     }
 
-    let tx = await mapClaimContract.populateTransaction.verifyClaim(mapClaimId, verifyClaimTxData);
-    let signedTx = await signerWallet.signTransaction(tx);
-    await provider.sendTransaction(signedTx);
+    await mapClaimContract.connect(signerWallet).verifyClaim(mapClaimId, verifyClaimTxData);
   }
 
   async function getMapClaims() {
@@ -120,32 +113,37 @@
             on:click={closeModal}></div>
 </Modals>
 
-<h1 class="text-3xl font-bold underline">Map Claims</h1>
+<h1 class="text-3xl font-bold underline p-4">Map Claims</h1>
 
-<div class="flex">
-    <button on:click={createClaim} class="btn">Create Claim</button>
-    <button on:click={getMapClaims} class="btn">Get my Claims</button>
+<div class="container p-4">
+    <div class="w-1/2">
+        <label for="userNameInput">Enter change set ID</label>
+        <input id="userNameInput" class="input" bind:value={userName} placeholder="your user name here">
+        <button on:click={createClaim(userName)} class="btn">Create Claim</button>
+        <button on:click={getMapClaims} class="btn">Get my Claims</button>
+    </div>
 </div>
 
 {#if mapClaims.length === 0}
     <h6>No MapClaims available</h6>
 {/if}
 
-{#each mapClaims as mapClaim}
-    <div class="flex border-dashed border-2 border-sky-500 mt-6">
-        <div class="h-8 px-5 m-2">Map Claim ID: {mapClaim.mapClaimId}</div>
-        <div class="h-8 px-5 m-2">Map User: {mapClaim.mapUserName}</div>
-        <div class="h-8 px-5 m-2">Mint Strike: {mapClaim.mintStrike}</div>
-        <div class="h-8 px-5 m-2">Status: {mapClaim.status}</div>
-        <div>
-            {#if mapClaim.status === 0}
-<!--                <button on:click={activateClaim(mapClaim.mapClaimId, changeSetId)} class="btn">Activate Claim</button>-->
-                <button on:click={activateClaim(mapClaim.mapClaimId)} class="btn">Activate Claim</button>
-            {/if}
-        </div>
+<div class="container p-4">
+    {#each mapClaims as mapClaim}
+        <div class="flex border-dashed border-2 border-sky-500 mt-6">
+            <div class="h-8 px-5 m-2">Map Claim ID: {mapClaim.mapClaimId}</div>
+            <div class="h-8 px-5 m-2">Map User: {mapClaim.mapUserName}</div>
+            <div class="h-8 px-5 m-2">Mint Strike: {mapClaim.mintStrike}</div>
+            <div class="h-8 px-5 m-2">Status: {mapClaim.status}</div>
+            <div>
+                {#if mapClaim.status === 0}
+                    <button on:click={activateClaim(mapClaim.mapClaimId)} class="btn">Activate Claim</button>
+                {/if}
+            </div>
 
-    </div>
-{/each}
+        </div>
+    {/each}
+</div>
 
 <style>
     .backdrop {
