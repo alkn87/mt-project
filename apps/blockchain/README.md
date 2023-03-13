@@ -1,13 +1,30 @@
-# Sample Hardhat Project
+# Hardhat Project
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+This project is based on Hardhat. Hardhat will compile, test, deploy the Solidity smart contracts.
 
 Try running some of the following tasks:
 
+Compile the smart contracts:
 ```shell
-npx hardhat help
+npx hardhat compile
+```
+
+Run the smart contract test suite:
+```shell
 npx hardhat test
-REPORT_GAS=true npx hardhat test
+```
+
+Create TypeScript stubs for use with Ethers.js:
+```shell
+npx hardhat typechain
+```
+
+Starting a local test net:
+```shell
 npx hardhat node
-npx hardhat run scripts/deploy.ts
+```
+
+Deployment of the smart contracts to local test net (test net must be running):
+```shell
+npx hardhat run ./scripts/deploy.ts --network localhost
 ```

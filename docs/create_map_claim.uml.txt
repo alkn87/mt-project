@@ -1,0 +1,49 @@
+@startuml
+actor C as "Contributor"
+participant FE as "Frontend"
+participant MC as "MapClaim Smart Contract"
+participant MS as "Mint Strike Oracle"
+database OSM
+
+activate C
+C -> FE: createMapClaim(mapUserName)
+activate FE
+note left
+  user creates a map claim
+  before editing on OSM
+end note
+
+FE -> MC: createMapClaim(mapUserName)
+deactivate FE
+
+activate MC
+MC -> MC: mint()
+MC -> MS: getMintStrike
+
+activate MS
+MS -->> MC: mintStrike
+deactivate MS
+
+MC -->> FE: new map claim event
+deactivate MC
+
+activate FE
+FE -> MC: parse map claims by Contributor
+
+activate MC
+MC -->> FE: map claims + mint strike for each
+deactivate MC
+FE --> C: mint strike for new map claim
+deactivate FE
+
+C -> OSM: perform OSM contribution, leave mint strike in changeset
+note left
+  user performs OSM editing,
+  leaves mint strike in comment
+  or as custom tag
+end note
+activate OSM
+OSM --> C: OSM changeset ID
+@enduml
+
+

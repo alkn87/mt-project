@@ -6,6 +6,8 @@ Everything you need to build a Svelte project, powered by [`create-svelte`](http
 
 If you're seeing this, you've probably already done this step. Congrats!
 
+Run the following init commands only when creating a new svelte frontend (not necessary with this repo).
+
 ```bash
 # create a new project in the current directory
 npm init svelte

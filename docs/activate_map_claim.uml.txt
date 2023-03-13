@@ -1,0 +1,59 @@
+@startuml
+actor C as "Contributor"
+participant FE as "Frontend"
+participant MC as "MapClaim Smart Contract"
+participant MSON as "Mint Strike Oracle\non-chain"
+participant MSOF as "Mint Strike Oracle\noff-chain"
+database OSM
+
+activate C
+C -> FE: activate claim
+activate FE
+note left
+  user activates a map claim
+  after editing on OSM
+end note
+FE -> MC: activateClaim(mapClaimId, changeSetId)
+deactivate FE
+
+activate MC
+MC -> MC: set status to ACTIVE
+MC -> MSON: request verifyMintStrike\n(mintStrike, changeSetID)
+activate MSON
+MC -->> FE: activated map claim event
+deactivate MC
+
+activate FE
+FE -> MC: parse map claims by Contributor
+activate MC
+MC -->> FE: map claims
+deactivate MC
+FE --> C: map claims
+deactivate FE
+
+MSON -->> MSOF: emit verifyMintStrike event\n(mintStrike, changeSetID)
+deactivate MSON
+activate MSOF
+MSOF -> OSM: parse changeset
+OSM --> MSOF: changeset
+MSOF -> MSOF: verify\n(mintStrike, changeSetID)
+MSOF -> MC: verifyClaim
+deactivate MSOF
+
+activate MC
+deactivate MC
+MC -> MC: set status to VERIFIED
+
+MC -->> FE: verified map claim event
+deactivate MC
+
+activate FE
+FE -> MC: parse map claims by Contributor
+
+activate MC
+MC -->> FE: map claims
+deactivate MC
+FE --> C: map claims
+deactivate FE
+
+@enduml

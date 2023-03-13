@@ -117,7 +117,7 @@
 
 <div class="container p-4">
     <div class="w-1/2">
-        <label for="userNameInput">Enter change set ID</label>
+        <label for="userNameInput">Enter user name</label>
         <input id="userNameInput" class="input" bind:value={userName} placeholder="your user name here">
         <button on:click={createClaim(userName)} class="btn">Create Claim</button>
         <button on:click={getMapClaims} class="btn">Get my Claims</button>

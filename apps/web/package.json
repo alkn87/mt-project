@@ -16,8 +16,7 @@
     "blockchain": "workspace:*",
     "ethers": "^5.7.2",
     "svelte-modals": "^1.2.1",
-    "svelte-simple-modal": "^1.5.2",
-    "ui": "workspace:*"
+    "svelte-simple-modal": "^1.5.2"
   },
   "devDependencies": {
     "@sveltejs/adapter-auto": "latest",

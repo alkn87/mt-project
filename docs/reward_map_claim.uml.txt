@@ -1,0 +1,62 @@
+@startuml
+actor C as "Contributor"
+actor V as "Verifier"
+participant FE as "Frontend"
+participant MC as "MapClaim Smart Contract"
+participant MT as "Map Token Smart Contract"
+database OSM
+
+activate V
+V -> FE: get verified map claims
+activate FE
+
+FE -> MC: parse verified map claims
+activate MC
+MC -->> FE: map claims
+deactivate MC
+
+FE --> V: verified map claims
+deactivate FE
+
+V -> OSM: get changeset for single map claim
+activate OSM
+OSM --> V: changeset
+deactivate OSM
+
+V -> V: review changeset
+V -> FE: accept changeset
+deactivate V
+
+activate FE
+FE -> MC: reward map claim
+deactivate FE
+activate MC
+
+MC -> MT: mint tokens
+activate MT
+MT -->> C: transfer tokens
+deactivate MT
+
+MC -> MC: check if verifier role reached
+
+MC -->> C: grant verifier role
+note right
+only if defined amount of
+rewarded contributions achieved
+end note
+MC -->> FE: rewarded map claim event
+deactivate MC
+
+activate FE
+FE -> MC: parse map claims by Contributor
+
+activate MC
+MC -->> FE: map claims
+deactivate MC
+FE --> C: map claims
+deactivate FE
+
+
+@enduml
+
+
