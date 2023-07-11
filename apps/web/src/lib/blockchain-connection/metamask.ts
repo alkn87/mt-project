@@ -6,7 +6,7 @@ async function getMetamaskProvider() {
   if (!metamaskProvider) {
     throw new Error('Could not detect Metamask');
   }
-  return new ethers.providers.Web3Provider(metamaskProvider);
+  return new ethers.BrowserProvider(window.ethereum);
 }
 
 /**

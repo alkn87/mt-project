@@ -1,0 +1,19 @@
+@startuml
+participant User
+participant "Smart Contract" as SmartContract
+participant "Oracle (off-chain)" as Oracle
+participant "Conventional API" as api
+
+User -> SmartContract: transaction(data)
+activate SmartContract
+SmartContract -> Oracle: emit request event
+activate Oracle
+Oracle --> api: perform API call
+activate api
+api --> Oracle: API response
+deactivate api
+Oracle --> SmartContract: transaction(response data)
+deactivate Oracle
+SmartContract --> User: response
+deactivate SmartContract
+@enduml

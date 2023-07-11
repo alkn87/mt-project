@@ -1,0 +1,24 @@
+@startuml C4_Elements
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+LAYOUT_TOP_DOWN()
+LAYOUT_WITH_LEGEND()
+
+AddRelTag("dashed", $lineStyle = DashedLine())
+
+Person(contributor, "Contributor", "System user who contributes geodata")
+Person(verifier, "Verifier", "System user who audits geodata")
+Person_Ext(ext_contributor, "Contributor", "System user who contributes geodata but does not rely on ICMAS")
+System_Ext(mapping, "Mapping Platform", "Offers free and open geodata and enables users to contribute geodata")
+System(dApp, "ICMAS", "A decentralized autonomous organization which offers a reputation and incentive system for contributing geodata.")
+SystemDb_Ext(database, "DB", "Spatial database which holds spatial data.")
+
+
+Rel(contributor, mapping, "Make contributions")
+Rel(ext_contributor, mapping, "Make contributions")
+Rel(contributor, dApp, "Make claims and get rewards based on geodata contributions")
+Rel(verifier, dApp, "Rewards or rejects contributions")
+Rel(verifier, mapping, "Checks contributions")
+Rel(dApp, mapping, "Fetches changeset data to verify contributor claims", $tags="dashed")
+Rel(mapping, database, "Create, read, update, delete user contributions", $tags="dashed")
+@enduml

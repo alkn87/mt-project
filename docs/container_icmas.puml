@@ -1,0 +1,41 @@
+@startuml C4_Elements
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+
+LAYOUT_TOP_DOWN()
+LAYOUT_WITH_LEGEND()
+
+AddRelTag("dashed", $lineStyle = DashedLine())
+
+Person(contributor, "Contributor", "System user who contributes geodata")
+Person(verifier, "Verifier", "System user who audits and rewards geodata")
+
+
+
+System_Boundary(icmas, "ICMAS") {
+  Container(frontend, "ICMAS Frontend", "SvelteKit", "Web frontend which provides ICMAS UI")
+  Container(mapclaim, "Map Claim", "Solidity Smart Contract, ERC721", "Map Claim Smart Contract implemented as ERC721 NFT")
+  Container(maptoken, "Map Token", "Solidity Smart Contract, ERC20", "Map Token Smart Contract implemented as ERC20 token")
+  Container(mintstrike, "Mint Strike Mock Oracle", "Solidity Smart Contract", "Simplified Mint Strike Oracle mock implementation")
+  Container(verification_on, "Verificiation Oracle On-Chain", "Solidity Smart Contract", "On-Chain part of the Verification Oracle service")
+  Container(verification_off, "Verificiation Oracle Off-Chain", "Node.js, Webservice", "Off-Chain part of the Verification Oracle service")
+}
+
+Container_Ext(metamask, "Metamask", "Browser Extension", "Wallet to interact with Ethereum blockchain")
+System_Ext(mapping, "Mapping Platform", "Offers free and open geodata and enables users to contribute geodata")
+
+Rel(contributor, frontend, "Create, activate map claims")
+Rel(verifier, frontend, "Verify, reward map claims")
+Rel_R(frontend, metamask, "Prepare transactions")
+Rel(metamask, mapclaim, "Sign, execute transactions")
+Rel(mapclaim, frontend, "Emits events")
+Rel(frontend, mapclaim, "Query Data")
+Rel(mapclaim, verification_on, "Query Data")
+Rel_R(verification_on, verification_off, "Emits events")
+Rel(verification_off, mapclaim, "Sign, execute transactions")
+Rel_R(mapclaim, mintstrike, "Get pseudo random mint strike")
+Rel_L(mapclaim, maptoken, "Mint new token")
+
+Rel(verification_off, mapping, "Fetches changeset data to verify contributor claims", $tags="dashed")
+
+@enduml

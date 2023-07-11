@@ -1,0 +1,52 @@
+@startuml
+left to right direction
+actor Contributor
+actor Verifier
+actor Admin
+actor Investor
+
+package "Map Claim Smart Contract" {
+  usecase (Create Map Claim) as UC1
+  usecase (Activate Map Claim) as UC2
+  usecase (Reward Map Claim) as UC3
+  usecase (Reject Map Claim) as UC4
+  usecase (Payout Reward) as UC3.1
+}
+
+package "Mint Strike Oracle" {
+  usecase (Create Mint Strike) as UC5
+}
+
+package "Verification Oracle" {
+  usecase (Verify Map Claim) as UC6
+}
+
+package "Governance" {
+  usecase (Promote to Verifier) as UC7
+  usecase (Flag Verifier) as UC8
+  usecase (Suspend Verifier) as UC9
+  usecase (Revoke Suspension) as UC10
+}
+
+package "Area Funding" {
+  usecase (Fund Map Tokens) as UC11
+}
+
+Contributor --> UC1
+Contributor --> UC2
+
+Contributor --> UC8
+Verifier --> UC3
+Verifier --> UC4
+
+Admin --> UC10
+
+Investor --> UC11
+
+UC1 ..> UC5 : includes
+UC2 ..> UC6 : includes
+UC3 ..> UC7 : includes
+UC8 ..> UC9 : includes
+UC3 ..> UC3.1 : includes
+
+@enduml

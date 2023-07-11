@@ -1,106 +1,106 @@
 <script lang="ts">
-  import { Modals, closeModal, openModal } from 'svelte-modals';
+  import {Modals, closeModal, openModal} from 'svelte-modals';
   import ClaimSelection from './ClaimSelection.svelte';
   import {
+    getCurrentSigner,
     getWriteMapClaimContract,
-    getWriteVerificationOracleContract
   } from '$lib/blockchain-connection';
-  import type { MapClaim } from 'blockchain';
-  import { BigNumber, Wallet } from 'ethers';
-  import { getProvider } from '$lib/blockchain-connection/connection';
-  import { onDestroy, onMount } from 'svelte';
+  import {getProvider} from '$lib/blockchain-connection/connection';
+  import {onMount, onDestroy} from "svelte";
+  import {JsonRpcProvider} from "ethers";
+  import type {MapClaim} from "blockchain";
 
   const mapClaimContract = getWriteMapClaimContract()
-  const verificationOracleContract = getWriteVerificationOracleContract()
 
-  let accountAddress: string;
+  let accountAddress;
   let userName: string;
 
-  onMount(async () => {
-    accountAddress = await mapClaimContract.signer.getAddress();
-  })
-
   let changeSetId = 0;
-  let mapClaims: MapClaim.MapClaimTokenStructOutput[] = [];
-  getMapClaims();
+  let mapClaims: MapClaim.MapClaimTokenStruct[] = [];
 
-  const listener = getProvider().on('block', async () => {
-    console.log('new block');
-    await getMapClaims();
-  })
+  let listener: Promise<JsonRpcProvider>;
 
-  const verifiedListener = mapClaimContract.on('MapClaimEvent', async (status, mapClaimId) => {
-    console.log('MapClaimEvent ' + status + ' - ' + mapClaimId);
-    await getMapClaims();
-  });
+  onMount(async () => {
+    accountAddress = await (await getCurrentSigner()).getAddress();
 
 
-  // TODO: This is a dummy implementation for the mint strike verification oracle node
-  // change it to a separate application
-  const oracleListener = verificationOracleContract.then(contract => {
-    contract.on('VerifyMintStrike', (senderAddress, mintStrike, changeSetId, mapUserName, mapClaimId) => {
-      verifyClaim(mapClaimId);
+    getMapClaims();
+
+    listener = getProvider().on('block', async () => {
+      console.log('new block');
+      await getMapClaims();
     });
-  });
 
+    const verifiedListener = mapClaimContract.then(mapClaimContract => {
+      mapClaimContract.addListener('MapClaimEvent', async (status, mapClaimId) => {
+        console.log('MapClaimEvent ' + status + ' - ' + mapClaimId);
+        await getMapClaims();
+      });
+    });
 
-  onDestroy(() => {
-    console.log('off');
-    listener.off('block');
   })
 
-  async function createClaim(userName: string) {
-    (await mapClaimContract.createMapClaim(userName, {
-      gasLimit: 1_000_000
-    })).wait();
+  onDestroy(async () => {
+    console.log('off');
+    listener.then(listener => listener.off('block'));
+  })
+
+  async function createClaim(userName) {
+    mapClaimContract.then(mapClaimContract => {
+      mapClaimContract.createMapClaim(userName);
+    });
   }
 
-  async function activateClaim(tokenId: Number) {
-    openModal(ClaimSelection, {tokenId, action: async (selectedChangeSetId) => {
-        await mapClaimContract.activateClaim(BigNumber.from(tokenId), BigNumber.from(selectedChangeSetId), {
-          gasLimit: 1_000_000
+  async function activateClaim(tokenId) {
+    openModal(ClaimSelection, {
+      tokenId, action: async (selectedChangeSetId) => {
+        mapClaimContract.then(mapClaimContract => {
+          mapClaimContract.activateClaim(tokenId, selectedChangeSetId);
         });
-    }});
-  }
-
-  async function verifyClaim(mapClaimId) {
-    const provider = getProvider();
-    const signer = provider.getSigner('0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266');
-    mapClaimContract.connect(signer);
-    const signerWallet = new Wallet('0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80', provider);
-
-    const accountNonce =
-      '0x' + (await signerWallet.getTransactionCount()).toString(16)
-
-    let verifyClaimTxData = {
-      from: signerWallet.address,
-      gasLimit: 1_000_000,
-      gasPrice: await provider.getGasPrice(),
-      nonce: accountNonce
-    }
-
-    await mapClaimContract.connect(signerWallet).verifyClaim(mapClaimId, verifyClaimTxData);
+      }
+    });
   }
 
   async function getMapClaims() {
     mapClaims = await parseMapClaims();
   }
 
-  async function parseMapClaims(): Promise<MapClaim.MapClaimTokenStructOutput[]> {
-    let claims: MapClaim.MapClaimTokenStructOutput[] = [];
-    await mapClaimContract.connect(accountAddress).balanceOf(accountAddress).then(async amount => {
-      if (amount <= 0) {
-        return;
-      }
-      let index = 0;
-      while (index < amount.toNumber()) {
-        await mapClaimContract.connect(accountAddress).tokenOfOwnerByIndex(accountAddress, index).then(async tokenId => {
-          let tokenStruct = await mapClaimContract.connect(accountAddress).getMapClaimById(tokenId);
-          claims.push(tokenStruct);
-        });
-        index++;
-      }
+  async function parseMapClaims(): Promise<MapClaim.MapClaimTokenStruct[]> {
+    let claims: MapClaim.MapClaimTokenStruct[] = [];
+
+    mapClaimContract.then(contract => {
+      contract.balanceOf(accountAddress).then(amount => {
+        if (amount <= 0) {
+          return;
+        }
+        let index = 0;
+        while (index < amount) {
+          contract.tokenOfOwnerByIndex(accountAddress, index).then(tokenId => {
+            // use the outer context mapClaimContract:
+            contract.getMapClaimById(tokenId).then(tokenStruct => {
+              claims.push(tokenStruct);
+            });
+          });
+          index++;
+        }
+      });
     });
+
+
+    // (await mapClaimContract).balanceOf(accountAddress).then(async amount => {
+    //   if (amount <= 0) {
+    //     return;
+    //   }
+    //   let index = 0;
+    //   while (index < amount) {
+    //     await (await mapClaimContract).tokenOfOwnerByIndex(accountAddress, index).then(async tokenId => {
+    //       // use the outer context mapClaimContract:
+    //       let tokenStruct = await (await mapClaimContract).getMapClaimById(tokenId);
+    //       claims.push(tokenStruct);
+    //     });
+    //     index++;
+    //   }
+    // });
     return claims;
   }
 
@@ -136,7 +136,7 @@
             <div class="h-8 px-5 m-2">Mint Strike: {mapClaim.mintStrike}</div>
             <div class="h-8 px-5 m-2">Status: {mapClaim.status}</div>
             <div>
-                {#if mapClaim.status === 0}
+                {#if BigInt(mapClaim.status) === BigInt(0)}
                     <button on:click={activateClaim(mapClaim.mapClaimId)} class="btn">Activate Claim</button>
                 {/if}
             </div>

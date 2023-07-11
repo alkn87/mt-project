@@ -1,0 +1,40 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+
+LAYOUT_TOP_DOWN()
+LAYOUT_WITH_LEGEND()
+
+AddRelTag("dashed", $lineStyle = DashedLine())
+
+Person(contributor, "Contributor", "System user who contributes geodata")
+Person(verifier, "Verifier", "System user who audits and rewards geodata")
+
+
+
+Container_Boundary(frontend, "ICMAS Frontend") {
+ Component(verification, "Verification Page", "SvelteKit", "Allows verifiers to perform rewards and rejections on map claims")
+ Component(claims, "Claim Page", "SvelteKit", "Allows contributors to perform view, create, active map claims")
+ Component(metamaskcon, "Metamask Provider", "Ethers.js", "Utility library for integration of Metamask into frontend")
+ Component(connection, "Blockchain Connection", "Ethers.js", "Utility library for smart contract interaction")
+ Container(mapclaim, "Map Claim", "Ethereum Smart Contracts", "Decentralized backend to claim and verify geodata contributions")
+}
+
+Container_Ext(metamask, "Metamask", "Browser Extension", "Wallet to interact with Ethereum blockchain")
+
+Rel(contributor, claims, "Create, activate map claims")
+Rel(verifier, verification, "Verify, reward map claims")
+Rel(claims, connection, "Call stub methods")
+Rel(verification, connection, "Call stub methods")
+Rel(connection, metamaskcon, "Prepare transactions")
+Rel(metamask, mapclaim, "Sign, execute transactions")
+Rel(mapclaim, connection, "Emits events")
+Rel(connection, mapclaim, "Query Data")
+Rel(metamaskcon, metamask, "Trigger")
+
+
+
+'Rel_R(mapclaim, mapping, "Fetches changeset data to verify contributor claims", $tags="dashed")
+'Rel_R(dapp, mapping, "Fetches changeset data to verify contributor claims")
+'SHOW_LEGEND()
+@enduml

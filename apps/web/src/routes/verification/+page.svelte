@@ -4,22 +4,22 @@
   import type {MapClaim} from "blockchain";
 
   const signer = getCurrentSigner();
-  const mapClaimContract = getWriteMapClaimContract()
+  const mapClaimContract = getWriteMapClaimContract();
 
   let hasRole: boolean;
   let mapClaims: MapClaim.MapClaimTokenStructOutput[] = [];
 
   onMount(async () => {
-    hasRole = await mapClaimContract.hasRole(mapClaimContract.VERIFIER_ROLE(), await signer.getAddress());
-    mapClaims = await mapClaimContract.getAllMapClaims();
+    hasRole = await (await mapClaimContract).hasRole((await mapClaimContract).VERIFIER_ROLE(), await (await signer).getAddress());
+    mapClaims = await (await mapClaimContract).getAllMapClaims();
   });
 
   async function rewardClaim(mapClaimId: number) {
-    await mapClaimContract.rewardClaim(mapClaimId).catch(err => console.log(err));
+    await (await mapClaimContract).rewardClaim(mapClaimId).catch(err => console.log(err));
   }
 
   async function rejectClaim(mapClaimId: number) {
-    await mapClaimContract.rejectClaim(mapClaimId).catch(err => console.log(err));
+    await (await mapClaimContract).rejectClaim(mapClaimId).catch(err => console.log(err));
   }
 </script>
 

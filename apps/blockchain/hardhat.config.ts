@@ -1,6 +1,6 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
-import "@nomiclabs/hardhat-ethers";
+import "@nomicfoundation/hardhat-ethers";
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -11,6 +11,9 @@ const config: HardhatUserConfig = {
         runs: 100,
       },
     },
+  },
+  typechain: {
+    target: "ethers-v6",
   }
 };
 

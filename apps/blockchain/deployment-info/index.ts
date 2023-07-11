@@ -2,4 +2,4 @@ export interface DeploymentAddresses {
 	 Lock: string;
 	 MapClaim: string;
 }
-export const deploymentAddresses: DeploymentAddresses = {"Lock":"0x3Aa5ebB10DC797CAC828524e59A333d0A371443c","MapClaim":"0xc6e7DF5E7b4f2A278906862b61205850344D4e7d"}
+export const deploymentAddresses: DeploymentAddresses = {"Lock":"0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0","MapClaim":"0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"}

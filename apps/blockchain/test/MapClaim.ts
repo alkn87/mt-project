@@ -1,8 +1,10 @@
 import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
-import { EthersProviderWrapper } from '@nomiclabs/hardhat-ethers/internal/ethers-provider-wrapper';
 import { VerifyMintStrikeOracleMock } from './VerifyMintStrikeOracleMock';
+import {MapClaim, MapClaimEventEvent, MapClaimInterface} from "../typechain-types/contracts/MapClaim";
+import {BigNumberish} from "ethers/lib.esm";
+import {MapToken} from "../typechain-types";
 
 describe("MapClaim", function () {
   async function deployMapClaimFixture() {
@@ -10,8 +12,8 @@ describe("MapClaim", function () {
     const [owner, otherAccount] = await ethers.getSigners();
 
     // Reset default ethers polling interval to speed up tests with event listening
-    const ownerProvider = owner.provider as EthersProviderWrapper;
-    ownerProvider.pollingInterval = 100;
+    // const ownerProvider = owner.provider as EthersProviderWrapper;
+    // ownerProvider.pollingInterval = 100;
 
     const MapClaim = await ethers.getContractFactory("MapClaim");
     const mapClaim = await MapClaim.deploy();
@@ -20,11 +22,11 @@ describe("MapClaim", function () {
     const verificationOracle = VerificationOracle.attach(await mapClaim.getVerificationOracleContractAddress());
 
     const MapToken = await ethers.getContractFactory('MapToken');
-    const mapToken = MapToken.attach(await mapClaim.getMapTokenContractAddress());
+    const mapToken = MapToken.attach(await mapClaim.getMapTokenContractAddress()) as MapToken;
 
     // Reset default ethers polling interval to speed up tests with event listening
-    const verificationOracleProvider = verificationOracle.provider as EthersProviderWrapper;
-    verificationOracleProvider.pollingInterval = 100;
+    // const verificationOracleProvider = verificationOracle.provider as EthersProviderWrapper;
+    // verificationOracleProvider.pollingInterval = 100;
 
     return { mapClaim, verificationOracle, mapToken, owner, otherAccount };
   }
@@ -53,45 +55,48 @@ describe("MapClaim", function () {
   describe('Integration', function () {
     it('Should trigger oracle verification event', async function () {
       const { mapClaim, verificationOracle} = await loadFixture(deployMapClaimFixture);
-      await expect(mapClaim.createMapClaim('max')).to.emit(mapClaim, 'MapClaimEvent');
 
-      let mapClaimStatus;
-      let mapClaimId = 99; // some invalid tokenId for initialization
+      let mapClaimStatus: BigNumberish = 0;
+      let mapClaimId: BigNumberish = 99; // some invalid tokenId for initialization
 
-      mapClaim.on('MapClaimEvent', async (status, id) => {
+      // await mapClaim.on(mapClaim.filters.MapClaimEvent(), async (status, id) => {
+      await mapClaim.addListener('MapClaimEvent', async (status, id) => {
         mapClaimStatus = status;
         mapClaimId = id;
       });
+
+      await expect(mapClaim.createMapClaim('max')).to.emit(mapClaim, 'MapClaimEvent');
 
       let verificationOracleOwnerAddress;
       let verificationOracleMintStrike;
       let verificationOracleChangeSetId;
       let verificationOracleMapUserName;
 
-      verificationOracle.on('VerifyMintStrike', async (ownerAddress, mintStrike, changeSetId, mapUserName) => {
+      await verificationOracle.on('VerifyMintStrike', async (ownerAddress, mintStrike, changeSetId, mapUserName) => {
+        console.log('VERIFICATION DONE');
         verificationOracleOwnerAddress = ownerAddress;
         verificationOracleMintStrike = mintStrike;
         verificationOracleChangeSetId = changeSetId;
         verificationOracleMapUserName = mapUserName;
+
+        expect(verificationOracleOwnerAddress).to.equal(await mapClaim.getAddress());
+        expect(verificationOracleChangeSetId).to.equal(132);
+        expect(verificationOracleMapUserName).to.equal('max');
+        expect(verificationOracleMintStrike).to.be.greaterThan(0);
+
+        expect(VerifyMintStrikeOracleMock.verify(
+          verificationOracleMintStrike as unknown as number,
+          verificationOracleChangeSetId as unknown as number,
+          verificationOracleMapUserName as unknown as string)).to.be.true;
       });
 
       // add timeout to catch fired events
       await new Promise(res => setTimeout(() => res(null), 800));
 
-      await mapClaim.activateClaim(mapClaimId, 132);
+      mapClaim.activateClaim(mapClaimId, 132);
 
       // add timeout to catch fired events
       await new Promise(res => setTimeout(() => res(null), 800));
-
-      expect(verificationOracleOwnerAddress).to.equal(mapClaim.address);
-      expect(verificationOracleChangeSetId).to.equal(132);
-      expect(verificationOracleMapUserName).to.equal('max');
-      expect(verificationOracleMintStrike).to.be.greaterThan(0);
-
-      expect(VerifyMintStrikeOracleMock.verify(
-        verificationOracleMintStrike as unknown as number,
-        verificationOracleChangeSetId as unknown as number,
-        verificationOracleMapUserName as unknown as string)).to.be.true;
     });
 
     it('should payout tokens when mapClaim rewarded', async function () {

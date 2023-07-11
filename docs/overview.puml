@@ -1,0 +1,42 @@
+@startuml
+!define RECTANGLE class
+
+package "Ethereum Blockchain" {
+    [MapClaim Smart Contract] as MC
+    [MapToken Smart Contract] as MT
+    [Mint Strike Oracle\n(on-chain)] as MSON
+    [Verification Oracle\n(on-chain)] as VON
+}
+
+cloud "Oracle Services" as OS {
+    [Mint Strike Oracle\n(off-chain)] as MSOF
+    [Verification Oracle\n(off-chain)] as VOF
+}
+
+database "Cartographic Database" as OSM
+
+[Frontend] as FE
+[Metamask] as MM
+
+actor Contributor as C
+actor Verifier as V
+
+C --> FE : Use Application
+V --> FE : Use Application
+FE --> MM : Wallet Interaction
+MM --> MC : Transaction
+MM --> MT : Transaction
+FE --> MC : Read Data
+FE --> MT : Read Data
+MC --> MT : Mint Tokens
+MC --> VON : Verification Request
+MC --> MSON : Mint Strike Request
+MSON --> MSOF : Mint Strike Request Event
+VON --> VOF : Verification Request Event
+VOF --> OSM : Verify Data
+FE --> MC : Listen to Events
+
+C --> OSM : Change Data
+V --> OSM : Verify Contributions
+
+@enduml
