@@ -1,0 +1,23 @@
+@startuml C4_Elements
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+Container_Boundary(frontend, "Frontend") {
+  Component(claims, "Claims Component")
+  Component(verification, "Verification Component")
+  Component(libs, "Ethers.js Utility Library")
+}
+
+Person(contributor, "Contributor")
+Person(verifier, "Verifier")
+Container_Ext(metamask, "Metamask")
+Container(mapclaim, "Map Claim", "Ethereum Smart Contract")
+
+Rel(contributor, claims, "uses")
+Rel(verifier, verification, "uses")
+Rel(claims, libs, "uses")
+Rel(verification, libs, "uses")
+Rel(libs, metamask, "prepare transaction")
+Rel(metamask, mapclaim, "sign, execute transactions")
+Rel(libs, mapclaim, "query data")
+Rel(mapclaim, libs, "emit events")
+@enduml

@@ -1,0 +1,42 @@
+@startuml
+
+abstract ERC721Enumerable {
+}
+
+abstract Ownable {
+}
+
+abstract ReentrancyGuard {
+}
+
+abstract AccessControl {
+}
+
+class MapClaim {
+  -_mapClaimIds: Counters.Counter
+  -_tokenIndex: uint256
+  -_mapClaimTokens: MapClaimToken[]
+  -mapToken: MapToken
+  -mockMintStrikeOracle: MockMintStrikeOracle
+  -verificationOracle: VerificationOracle
+
+  +constructor(): void
+  +activateClaim(mapClaimId: uint256, changeSetId: uint256): void
+  +createMapClaim(mapUserName: string): void
+  +rejectClaim(mapClaimId: uint256): void
+  +rewardClaim(mapClaimId: uint256): void
+  +verifyClaim(mapClaimId: uint256): void
+  +getAllMapClaims(): MapClaimToken[]
+  +getMapClaimById(mapClaimId: uint256): MapClaimToken
+  +getMapTokenContractAddress(): address
+  +getMintStrike(mapClaimId: uint256, mapUserName: string): uint
+  +getNumberOfRewardedMapClaims(mapClaimOwner: address): uint256
+  +checkVerifierStatusReached(mapClaimOwner: address): bool
+}
+
+ERC721Enumerable <|-- MapClaim
+Ownable <|-- MapClaim
+ReentrancyGuard <|-- MapClaim
+AccessControl <|-- MapClaim
+
+@enduml

@@ -4,9 +4,7 @@ pragma solidity ^0.8.0;
 import '@openzeppelin/contracts/access/Ownable.sol';
 
 contract VerificationOracle is Ownable {
-    constructor(){
-
-    }
+    constructor(){}
 
     event VerifyMintStrike(address senderAddress, uint mintStrike, uint changeSetId, string mapUserName, uint256 mapClaimId);
 

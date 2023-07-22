@@ -1,0 +1,50 @@
+@startuml
+actor C as "Contributor"
+actor V as "Verifier"
+participant FE as "Frontend"
+participant MC as "MapClaim Smart Contract"
+database OSM
+
+activate V
+V -> FE: get verified map claims
+activate FE
+
+FE -> MC: parse verified map claims
+activate MC
+MC -->> FE: map claims
+deactivate MC
+
+FE --> V: verified map claims
+deactivate FE
+
+V -> OSM: get changeset for single map claim
+activate OSM
+OSM --> V: changeset
+deactivate OSM
+
+V -> V: review changeset
+V -> FE: reject changeset
+deactivate V
+
+activate FE
+FE -> MC: reject map claim
+deactivate FE
+activate MC
+
+
+MC -->> FE: rejected map claim event
+deactivate MC
+
+activate FE
+FE -> MC: parse map claims by Contributor
+
+activate MC
+MC -->> FE: map claims
+deactivate MC
+FE --> C: map claims
+deactivate FE
+
+
+@enduml
+
+

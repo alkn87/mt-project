@@ -1,12 +1,9 @@
 <script lang="ts">
-  import {Modals, closeModal, openModal} from 'svelte-modals';
+  import {closeModal, Modals, openModal} from 'svelte-modals';
   import ClaimSelection from './ClaimSelection.svelte';
-  import {
-    getCurrentSigner,
-    getWriteMapClaimContract,
-  } from '$lib/blockchain-connection';
+  import {getCurrentSigner, getWriteMapClaimContract,} from '$lib/blockchain-connection';
   import {getProvider} from '$lib/blockchain-connection/connection';
-  import {onMount, onDestroy} from "svelte";
+  import {onDestroy, onMount} from "svelte";
   import {JsonRpcProvider} from "ethers";
   import type {MapClaim} from "blockchain";
 
@@ -19,6 +16,7 @@
   let mapClaims: MapClaim.MapClaimTokenStruct[] = [];
 
   let listener: Promise<JsonRpcProvider>;
+  let eventListener: Promise<MapClaim>;
 
   onMount(async () => {
     accountAddress = await (await getCurrentSigner()).getAddress();
@@ -31,10 +29,10 @@
       await getMapClaims();
     });
 
-    const verifiedListener = mapClaimContract.then(mapClaimContract => {
-      mapClaimContract.addListener('MapClaimEvent', async (status, mapClaimId) => {
+    eventListener = mapClaimContract.then(mapClaimContract => {
+      return mapClaimContract.addListener(mapClaimContract.filters.MapClaimEvent, (status, mapClaimId) => {
         console.log('MapClaimEvent ' + status + ' - ' + mapClaimId);
-        await getMapClaims();
+        getMapClaims();
       });
     });
 
@@ -43,6 +41,7 @@
   onDestroy(async () => {
     console.log('off');
     listener.then(listener => listener.off('block'));
+    eventListener.then(eventListener => eventListener.off(eventListener.filters.MapClaimEvent));
   })
 
   async function createClaim(userName) {
@@ -66,42 +65,22 @@
   }
 
   async function parseMapClaims(): Promise<MapClaim.MapClaimTokenStruct[]> {
-    let claims: MapClaim.MapClaimTokenStruct[] = [];
+    const contract = await mapClaimContract;
+    const amount = BigInt(await contract.balanceOf(accountAddress));
 
-    mapClaimContract.then(contract => {
-      contract.balanceOf(accountAddress).then(amount => {
-        if (amount <= 0) {
-          return;
-        }
-        let index = 0;
-        while (index < amount) {
-          contract.tokenOfOwnerByIndex(accountAddress, index).then(tokenId => {
-            // use the outer context mapClaimContract:
-            contract.getMapClaimById(tokenId).then(tokenStruct => {
-              claims.push(tokenStruct);
-            });
-          });
-          index++;
-        }
-      });
-    });
+    if (amount <= BigInt(0)) {
+      return [];
+    }
 
+    const claimsPromises: Promise<MapClaim.MapClaimTokenStruct>[] = [];
 
-    // (await mapClaimContract).balanceOf(accountAddress).then(async amount => {
-    //   if (amount <= 0) {
-    //     return;
-    //   }
-    //   let index = 0;
-    //   while (index < amount) {
-    //     await (await mapClaimContract).tokenOfOwnerByIndex(accountAddress, index).then(async tokenId => {
-    //       // use the outer context mapClaimContract:
-    //       let tokenStruct = await (await mapClaimContract).getMapClaimById(tokenId);
-    //       claims.push(tokenStruct);
-    //     });
-    //     index++;
-    //   }
-    // });
-    return claims;
+    for (let index = 0; BigInt(index) < amount; index++) {
+      const promise = contract.tokenOfOwnerByIndex(accountAddress, index)
+        .then(tokenId => contract.getMapClaimById(tokenId));
+      claimsPromises.push(promise);
+    }
+
+    return await Promise.all(claimsPromises);
   }
 
 </script>
@@ -124,7 +103,7 @@
     </div>
 </div>
 
-{#if mapClaims.length === 0}
+{#if BigInt(mapClaims.length) === BigInt(0)}
     <h6>No MapClaims available</h6>
 {/if}
 

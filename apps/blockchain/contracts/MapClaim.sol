@@ -103,7 +103,7 @@ contract MapClaim is ERC721Enumerable, Ownable, ReentrancyGuard, AccessControl {
     function rejectClaim(uint256 mapClaimId) public onlyVerifiers {
         require(_exists(mapClaimId), 'Map claim does not exist!');
         require(_mapClaimTokens[tokenIndex[mapClaimId]].status == MapClaimStatus.VERIFIED, string.concat('Map claim is not verified! - ', Strings.toString(mapClaimId)));
-        require(ownerOf(mapClaimId) != msg.sender, 'Map claim belonging to own address cannot be rewarded!');
+        require(ownerOf(mapClaimId) != msg.sender, 'Map claim belonging to own address cannot be rejected!');
         _mapClaimTokens[tokenIndex[mapClaimId]].status = MapClaimStatus.REJECTED;
         emit MapClaimEvent(MapClaimStatus.REJECTED, mapClaimId);
     }

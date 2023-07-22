@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osmChange version="0.6" generator="CGImap 0.8.8 (296999 spike-06.openstreetmap.org)" copyright="OpenStreetMap and contributors" attribution="http://www.openstreetmap.org/copyright" license="http://opendatacommons.org/licenses/odbl/1-0/">
+ ...
+  <way id="1189826046" visible="true" version="1" changeset="138543871" timestamp="2023-07-01T12:50:48Z" user="Alice" uid="98765">
+   <nd ref="11048006405"/>
+   <nd ref="11048006406"/>
+   <nd ref="11048006407"/>
+   <nd ref="11048006408"/>
+   <nd ref="11048006409"/>
+   <nd ref="11048006410"/>
+   <nd ref="11048006411"/>
+   <nd ref="11048006405"/>
+   <tag k="addr:city" v="Pressbaum"/>
+   <tag k="addr:housenumber" v="115b"/>
+   <tag k="addr:postcode" v="3021"/>
+   <tag k="addr:street" v="Hauptstraße"/>
+   <tag k="building" v="yes"/>
+   <tag k="building:levels" v="3"/>
+   <tag k="fire_station:type" v="voluntary"/>
+   <tag k="mint_strike" v="997"/>
+   <tag k="name" v="Freiwillige Feuerwehr Pressbaum"/>
+  </way>
+ </create>
+ ...
+</osmChange>

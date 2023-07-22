@@ -2,8 +2,8 @@
 actor C as "Contributor"
 participant FE as "Frontend"
 participant MC as "MapClaim Smart Contract"
-participant MSON as "Mint Strike Oracle\non-chain"
-participant MSOF as "Mint Strike Oracle\noff-chain"
+participant MSON as "Verification Oracle\non-chain"
+participant MSOF as "Verification Oracle\noff-chain"
 database OSM
 
 activate C
